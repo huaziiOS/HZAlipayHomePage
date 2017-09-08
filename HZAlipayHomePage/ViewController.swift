@@ -85,7 +85,8 @@ class ViewController: UIViewController {
                 
             })
         }
-        // 由于顶部有305高度的tableHeaderView, 并且在设置的时候, 将tableView的scrollIndicatorInsets的top值设置为305, 所以需要忽略这部分高度, 才可以正常显示下拉刷新动画.
+        
+        //重点: 由于顶部有305高度的tableHeaderView, 并且在设置的时候, 将tableView的scrollIndicatorInsets的top值设置为305, 所以需要忽略这部分高度, 才可以正常显示下拉刷新动画.
         tableView.mj_header.ignoredScrollViewContentInsetTop = -305
         
         tableView.mj_footer = MJRefreshAutoNormalFooter { [weak self] in
@@ -111,25 +112,40 @@ class ViewController: UIViewController {
 
 extension ViewController: UIScrollViewDelegate {
     
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        let offentY = scrollView.contentOffset.y
+        // 此处之所以以24为判断依据, 主要是因为要与下面设置alpha保持一致, 1 - 24 / 95 约等于 0.75
+        if offentY > 0 && offentY < 24 {
+            tableView.setContentOffset(CGPoint(x: 0, y: 0), animated: true)
+        } else if offentY >= 24 && offentY < 95 {
+            tableView.setContentOffset(CGPoint(x: 0, y: 95), animated: true)
+        }
+    }
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let offsetY = scrollView.contentOffset.y
         if offsetY <= 0 {
             headerView.frame = CGRect(x: 0, y: offsetY, width: SCREEN_WIDTH, height: 305)
+            childVC?.changeAlpha(alpha: 1)
             coverNavView.alpha = 0
             mainNavView.alpha = 1
         } else if offsetY > 0 && offsetY < 95 {
             //处理透明度
             let alpha = (1 - offsetY / 95) > 0 ? (1 - offsetY / 95) : 0
-            childVC?.changeAlpha(alpha: alpha)
-            if alpha > 0.9 {
+            childVC?.changeAlpha(alpha: alpha / 3)
+            if alpha > 0.9 { // 为了原显示内容可以快速消失, 增加后面有更长的显示时长
                 coverNavView.alpha = 0
                 mainNavView.alpha = alpha / 5
             } else {
                 mainNavView.alpha = 0
                 coverNavView.alpha = 1 - alpha
+                if alpha <= 0.75 {
+                    childVC?.changeAlpha(alpha: 0)
+                }
             }
         }
     }
+    
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
