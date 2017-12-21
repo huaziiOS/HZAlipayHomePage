@@ -19,10 +19,11 @@ extension UIView {
      */
     class func loadFromNib() -> AnyObject? {
         /// 截取项目的文件名
-        let classString = NSStringFromClass(object_getClass(self))
+        let classString = NSStringFromClass(object_getClass(self)!)
         let classRange: Range<String.Index> = classString.startIndex ..< classString.endIndex
         let range = classString.range(of: ".", options: NSString.CompareOptions.caseInsensitive, range: classRange, locale: nil)
-        return self.loadFromNibNamed(classString.substring(from: (range?.upperBound)!), isKindOf: self.classForCoder())
+        let nibName = classString[range!.upperBound...]
+        return self.loadFromNibNamed(String(nibName), isKindOf: self.classForCoder())
     }
     
     /**

@@ -1,8 +1,9 @@
-platform :ios, ‘8.0’
+platform :ios, '8.0'
+inhibit_all_warnings!
 use_frameworks!
 
-target ‘HZAlipayHomePage’ do
+target 'HZAlipayHomePage' do
 
-	pod ‘MJRefresh‘
+	pod 'MJRefresh'
 
 end
